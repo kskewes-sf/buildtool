@@ -77,7 +77,7 @@ jobs:
             echo "Version: ${version}"
           fi
 
-      - name: Run dry_run of release
+      - name: Publish release - dry run
         run: |
           ./dev/buildtool.sh \
             publish_spinnaker \
