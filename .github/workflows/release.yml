@@ -51,7 +51,8 @@ jobs:
         run: |
           echo REPOSITORY_OWNER="${GITHUB_REPOSITORY%/*}" >> $GITHUB_OUTPUT
 
-          if [[ -z ${{ inputs.tag }} ]]; then
+          input_tag="${{ inputs.tag }}"
+          if [[ -z ${inputs_tag} ]]; then
             tag="${{ inputs.tag }}"
           else
             tag="$( echo ${{ github.ref }} | sed 's@refs/tags/@@')"
@@ -65,7 +66,8 @@ jobs:
             echo VERSION="${version%%-rc*}" >> $GITHUB_OUTPUT
             echo "Version: ${version%%-rc*}"
           else
-            if [[ ${{ inputs.dryRun }} == "true" ]]; then
+            inputs_dryrun="${{ inputs.dryRun }}"
+            if [[ "${inputs_dryrun}" == "true" ]]; then
               echo "Manual trigger with dry run selected."
               echo IS_CANDIDATE="true" >> $GITHUB_OUTPUT
             else
