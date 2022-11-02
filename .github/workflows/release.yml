@@ -6,6 +6,21 @@ on:
     - "v[0-9]+.[0-9]+.[0-9]+"
     - "v[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+"
 
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release version, for example: v1.30.0, v1.31.1-rc.1'
+        type: string
+        required: true
+      dryRun:
+        description: 'Perform a dry_run regardless of tag. "-rc*" are always dry run.'
+        default: 'true'
+        options:
+        - 'true'
+        - 'false'
+        type: string
+        required: true
+
 env:
   # Bump this when new releases require a newer Halyard version.
   MINIMUM_HALYARD_VERSION: "1.45"
@@ -35,16 +50,27 @@ jobs:
         id: release_info
         run: |
           echo REPOSITORY_OWNER="${GITHUB_REPOSITORY%/*}" >> $GITHUB_OUTPUT
-          tag="$( echo ${{ github.ref }} | sed 's@refs/tags/@@')"
+
+          if [[ -z ${{ input.tag }} ]]; then
+            tag="${{ input.tag }}"
+          else
+            tag="$( echo ${{ github.ref }} | sed 's@refs/tags/@@')"
+          fi
           version="${tag##v}"
           echo "Running publish_spinnaker for version: ${version}"
+
           if [[ "${version}" == *-rc* ]]; then
             echo "Release candidate detected."
             echo IS_CANDIDATE="true" >> $GITHUB_OUTPUT
             echo VERSION="${version%%-rc*}" >> $GITHUB_OUTPUT
             echo "Version: ${version%%-rc*}"
           else
-            echo IS_CANDIDATE="false" >> $GITHUB_OUTPUT
+            if [[ ${{ input.dryRun }} == "true" ]]; then
+              echo "Manual trigger with dry run selected."
+              echo IS_CANDIDATE="true" >> $GITHUB_OUTPUT
+            else
+              echo IS_CANDIDATE="false" >> $GITHUB_OUTPUT
+            fi
             echo VERSION="${version}" >> $GITHUB_OUTPUT
             echo "Version: ${version}"
           fi
