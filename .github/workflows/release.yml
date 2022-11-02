@@ -51,7 +51,6 @@ jobs:
         run: |
           echo REPOSITORY_OWNER="${GITHUB_REPOSITORY%/*}" >> $GITHUB_OUTPUT
 
-          inputs_tag="${{ inputs.tag }}"
           if [[ "${{ inputs.tag }}" != "" ]]; then
             tag="${{ inputs.tag }}"
           else
@@ -72,7 +71,7 @@ jobs:
            version="${semver}"
           fi
 
-          if [[ "${{ inputs_dryrun }}" == "true" ]]; then
+          if [[ "${{ inputs.dryRun }}" == "true" ]]; then
             echo "Manual trigger with dry run selected, overriding release candidate status."
             rc="true"
           fi
