@@ -52,30 +52,35 @@ jobs:
           echo REPOSITORY_OWNER="${GITHUB_REPOSITORY%/*}" >> $GITHUB_OUTPUT
 
           inputs_tag="${{ inputs.tag }}"
-          if [[ -z ${inputs_tag} ]]; then
-            tag="$( echo ${{ github.ref }} | sed 's@refs/tags/@@')"
-          else
+          if [[ "${{ inputs.tag }}" != "" ]]; then
             tag="${{ inputs.tag }}"
-          fi
-          version="${tag##v}"
-          echo "Running publish_spinnaker for version: ${version}"
-
-          if [[ "${version}" == *-rc* ]]; then
-            echo "Release candidate detected."
-            echo IS_CANDIDATE="true" >> $GITHUB_OUTPUT
-            echo VERSION="${version%%-rc*}" >> $GITHUB_OUTPUT
-            echo "Version: ${version%%-rc*}"
           else
-            inputs_dryrun="${{ inputs.dryRun }}"
-            if [[ "${inputs_dryrun}" == "true" ]]; then
-              echo "Manual trigger with dry run selected."
-              echo IS_CANDIDATE="true" >> $GITHUB_OUTPUT
-            else
-              echo IS_CANDIDATE="false" >> $GITHUB_OUTPUT
-            fi
-            echo VERSION="${version}" >> $GITHUB_OUTPUT
-            echo "Version: ${version}"
+            tag="$( echo ${{ github.ref }} | sed 's@refs/tags/@@')"
           fi
+          echo "Using tag: ${tag}"
+
+          semver="${tag##v}"
+          echo "Using semver: ${semver}"
+
+          if [[ "${semver}" == *-rc* ]]; then
+            echo "Release candidate detected."
+            rc="true"
+            version="${semver%%-rc*}"
+          else
+           echo "Final version detected."
+           rc="false"
+           version="${semver}"
+          fi
+
+          if [[ "${{ inputs_dryrun }}" == "true" ]]; then
+            echo "Manual trigger with dry run selected, overriding release candidate status."
+            rc="true"
+          fi
+
+          echo IS_CANDIDATE="${rc}" >> $GITHUB_OUTPUT
+          echo VERSION="${version}" >> $GITHUB_OUTPUT
+
+          echo "Running publish_spinnaker for version: ${version} - release candidate: ${rc}"
 
       - name: Publish release - dry run
         run: |
