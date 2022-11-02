@@ -51,11 +51,11 @@ jobs:
         run: |
           echo REPOSITORY_OWNER="${GITHUB_REPOSITORY%/*}" >> $GITHUB_OUTPUT
 
-          input_tag="${{ inputs.tag }}"
+          inputs_tag="${{ inputs.tag }}"
           if [[ -z ${inputs_tag} ]]; then
-            tag="${{ inputs.tag }}"
-          else
             tag="$( echo ${{ github.ref }} | sed 's@refs/tags/@@')"
+          else
+            tag="${{ inputs.tag }}"
           fi
           version="${tag##v}"
           echo "Running publish_spinnaker for version: ${version}"
